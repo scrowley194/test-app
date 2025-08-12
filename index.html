@@ -3,72 +3,311 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Daily Ops</title>
+<title>Gym Log</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
-
 <link rel="manifest" href="manifest.webmanifest" />
 <meta name="theme-color" content="#0b0e14" />
 
 <style>
-  :root { --bg:#0b0e14; --card:#121826; --text:#e6ebf5; --border:rgba(255,255,255,0.1); }
+  :root{
+    --bg:#0b0e14; --card:#121826; --text:#e6ebf5; --muted:#97a3b6; --border:rgba(255,255,255,.08);
+    --green:#6ee7b7; --blue:#93c5fd; --yellow:#fde68a; --red:#fca5a5;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0; background:var(--bg); color:var(--text); font:16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;}
-  .wrap{max-width:720px; margin:0 auto; padding:28px 18px}
-  .card{background:#111826cc; border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.25); backdrop-filter:blur(6px)}
-  h1{margin:0 0 8px 0; font-size:24px}
-  .muted{opacity:.75}
-  button{background:#1b2333; color:#e6ebf5; border:1px solid var(--border); padding:10px 12px; border-radius:10px; cursor:pointer}
+  body{margin:0; background:radial-gradient(1200px 800px at 100% -10%, #182235 0%, #0b0e14 55%), var(--bg); color:var(--text); font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
+  .wrap{max-width:820px; margin:0 auto; padding:22px 16px 40px}
+  header{display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+  h1{margin:0; font-size:24px}
+  .muted{color:var(--muted)}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border:1px solid var(--border); border-radius:var(--r); padding:14px 14px 16px; box-shadow:0 10px 30px rgba(0,0,0,.25); backdrop-filter:blur(6px); margin-bottom:12px}
   .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  button{background:#1b2333; border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; cursor:pointer; transition:.15s}
+  button:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.25)}
+  button.primary{background:linear-gradient(180deg, rgba(110,231,183,.18), rgba(110,231,183,.10)); border-color:rgba(110,231,183,.35)}
+  button.warn{background:linear-gradient(180deg, rgba(253,230,138,.20), rgba(253,230,138,.12)); border-color:rgba(253,230,138,.35)}
+  button.danger{background:linear-gradient(180deg, rgba(252,165,165,.18), rgba(252,165,165,.10)); border-color:rgba(252,165,165,.35)}
+  input[type="number"], input[type="text"], select{background:#0e1422; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px}
+  .pill{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border); border-radius:999px}
+  .tick{display:flex; justify-content:space-between; align-items:center; padding:10px; border:1px solid var(--border); border-radius:12px}
+  .tick h3{margin:0; font-size:16px}
+  .streak{font-feature-settings:"tnum" 1,"lnum" 1; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--green)}
+  .sets{display:grid; grid-template-columns:1fr; gap:8px}
+  @media(min-width:620px){.sets{grid-template-columns:1fr 1fr}}
+  .set{display:flex; gap:8px; align-items:center; padding:10px; border:1px dashed var(--border); border-radius:10px}
+  .set input{width:90px}
+  .footer{margin-top:14px; text-align:center; color:var(--muted)}
+  canvas{width:100%; height:160px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="card">
-    <h1>Daily Ops PWA</h1>
-    <p class="muted">This is a minimal shell so you can install and test the PWA experience. Replace this content with your own tools when ready.</p>
-    <div class="row">
-      <button id="installBtn" style="display:none">Install</button>
-      <button id="offlineTest">Make offline test note</button>
+  <header>
+    <div>
+      <h1>Gym Log</h1>
+      <div class="muted" id="today"></div>
     </div>
-    <p id="status" class="muted"></p>
-  </div>
+    <div class="row">
+      <button id="export" class="primary">Export Markdown</button>
+      <button id="resetDay" class="danger">Reset today</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="tick">
+      <div>
+        <h3>Today</h3>
+        <div class="muted">Strength and definition</div>
+      </div>
+      <div class="row">
+        <button id="doneBtn" class="primary">Mark done</button>
+        <span class="streak">Streak <span id="streakNum">0</span> d</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px 0">Timer</h3>
+    <div class="row">
+      <div id="clock" style="font-size:32px; font-weight:700; letter-spacing:1px">25:00</div>
+      <button id="start" class="primary">Start</button>
+      <button id="pause">Pause</button>
+      <button id="reset">Reset</button>
+      <span class="pill">Work <input id="workLen" type="number" min="1" value="25" style="width:70px" /> Break <input id="breakLen" type="number" min="1" value="5" style="width:70px" /></span>
+      <button id="apply">Apply</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px 0">Routine</h3>
+    <div class="row" style="margin-bottom:8px">
+      <select id="preset">
+        <option value="push">Push day</option>
+        <option value="pull">Pull day</option>
+        <option value="legs">Legs</option>
+        <option value="core">Core</option>
+        <option value="custom">Custom</option>
+      </select>
+      <button id="loadPreset" class="warn">Load preset</button>
+      <button id="addSet">Add set</button>
+      <button id="clearSets" class="danger">Clear sets</button>
+    </div>
+    <div class="sets" id="sets"></div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px 0">This week</h3>
+    <canvas id="chart" width="700" height="160" aria-label="Weekly streak chart"></canvas>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px 0">Notes</h3>
+    <textarea id="notes" placeholder="How did it feel. What to increase next time." style="width:100%; min-height:110px; background:#0e1422; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px"></textarea>
+  </section>
+
+  <div class="footer">Tip: open once while online after each update so the new cache is stored.</div>
 </div>
 
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(console.error);
+(function(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const store = "gymlog_v1";
+
+  const todayStr = new Date().toLocaleDateString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"});
+  $("#today").textContent = todayStr;
+
+  const S = load() || init();
+
+  function init(){
+    return {
+      date: isoDay(new Date()),
+      streak: 0,
+      lastDone: null,
+      week: {},     // { 'YYYY-MM-DD': true }
+      sets: [],     // [{name, reps, weight}]
+      notes: ""
+    };
+  }
+  function save(){ localStorage.setItem(store, JSON.stringify(S)); }
+  function load(){ try{ return JSON.parse(localStorage.getItem(store)); }catch(e){ return null; } }
+  function isoDay(d){ const t = new Date(d.getTime() - d.getTimezoneOffset()*60000); return t.toISOString().slice(0,10); }
+
+  // Rollover day
+  const today = isoDay(new Date());
+  if(S.date !== today){
+    S.date = today;
+    S.sets = [];
+    S.notes = "";
+    save();
+  }
+
+  // Streak UI
+  $("#streakNum").textContent = S.streak || 0;
+
+  $("#doneBtn").addEventListener("click", ()=>{
+    const today = isoDay(new Date());
+    if(S.lastDone === today){ alert("Already marked done today."); return; }
+    if(S.lastDone){
+      const diff = Math.round((new Date(today) - new Date(S.lastDone))/(1000*60*60*24));
+      if(diff === 1 || S.lastDone === today) S.streak += 1;
+      else if(diff > 1) S.streak = 1;
+    } else {
+      S.streak = 1;
+    }
+    S.lastDone = today;
+    S.week[today] = true;
+    $("#streakNum").textContent = S.streak;
+    save();
+    drawChart();
   });
-}
 
-// basic install prompt for Android or desktop
-let deferredPrompt = null;
-const installBtn = document.getElementById('installBtn');
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = 'inline-block';
-});
-installBtn?.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  installBtn.style.display = 'none';
-});
+  // Presets
+  const presets = {
+    push: ["Bench press","Incline DB press","Overhead press","Triceps pushdown","Lateral raise"],
+    pull: ["Deadlift","Pull up","Barbell row","Face pull","Biceps curl"],
+    legs: ["Back squat","Romanian deadlift","Leg press","Calf raise","Leg curl"],
+    core: ["Hanging leg raise","Cable crunch","Pallof press","Plank","Ab wheel"]
+  };
 
-// tiny offline test
-const status = document.getElementById('status');
-document.getElementById('offlineTest').addEventListener('click', () => {
-  const key = 'offline-note';
-  const val = 'Saved at ' + new Date().toISOString();
-  localStorage.setItem(key, val);
-  status.textContent = 'Saved: ' + val + ' • Now try Airplane Mode and reload.';
-});
+  $("#loadPreset").addEventListener("click", ()=>{
+    const p = $("#preset").value;
+    if(p === "custom") return;
+    S.sets = presets[p].map(n => ({name:n, reps:8, weight:0}));
+    renderSets();
+    save();
+  });
+
+  $("#addSet").addEventListener("click", ()=>{
+    S.sets.push({name:"Exercise", reps:8, weight:0});
+    renderSets();
+    save();
+  });
+
+  $("#clearSets").addEventListener("click", ()=>{
+    if(!confirm("Clear all sets for today")) return;
+    S.sets = [];
+    renderSets();
+    save();
+  });
+
+  function renderSets(){
+    const wrap = $("#sets");
+    wrap.innerHTML = "";
+    S.sets.forEach((s, i)=>{
+      const row = document.createElement("div");
+      row.className = "set";
+      row.innerHTML = `
+        <input type="text" value="${s.name}" aria-label="Exercise name" />
+        <label class="muted">Reps <input type="number" value="${s.reps}" min="1" /></label>
+        <label class="muted">Weight <input type="number" value="${s.weight}" min="0" step="0.5" /></label>
+        <button data-i="${i}" class="doneSet">Done</button>
+        <button data-i="${i}" class="del danger">Delete</button>
+      `;
+      wrap.appendChild(row);
+    });
+
+    $$(".set").forEach((row, idx)=>{
+      const [nameI, repsI, weightI] = row.querySelectorAll("input");
+      nameI.addEventListener("input", e=>{ S.sets[idx].name = e.target.value; save(); });
+      repsI.addEventListener("input", e=>{ S.sets[idx].reps = parseInt(e.target.value||0,10); save(); });
+      weightI.addEventListener("input", e=>{ S.sets[idx].weight = parseFloat(e.target.value||0); save(); });
+      row.querySelector(".del").addEventListener("click", ()=>{
+        S.sets.splice(idx,1); renderSets(); save();
+      });
+      row.querySelector(".doneSet").addEventListener("click", ()=>{
+        row.style.opacity = .6;
+      });
+    });
+  }
+  renderSets();
+
+  // Notes
+  const notesEl = $("#notes");
+  notesEl.value = S.notes || "";
+  notesEl.addEventListener("input", ()=>{ S.notes = notesEl.value; save(); });
+
+  // Timer
+  let work = parseInt($("#workLen").value,10);
+  let rest = parseInt($("#breakLen").value,10);
+  let isWork = true, left = work*60, t = null;
+  function renderClock(){ const m = String(Math.floor(left/60)).padStart(2,"0"); const s = String(left%60).padStart(2,"0"); $("#clock").textContent = `${m}:${s}`; }
+  function tick(){ left -= 1; if(left <= 0){ isWork = !isWork; left = (isWork?work:rest)*60; notify(isWork?"Back to work":"Break time"); } renderClock(); }
+  $("#start").addEventListener("click", ()=>{ if(t) return; t = setInterval(tick, 1000); });
+  $("#pause").addEventListener("click", ()=>{ if(t){ clearInterval(t); t = null; } });
+  $("#reset").addEventListener("click", ()=>{ if(t){ clearInterval(t); t = null; } isWork = true; left = work*60; renderClock(); });
+  $("#apply").addEventListener("click", ()=>{ work = Math.max(1, parseInt($("#workLen").value,10)); rest = Math.max(1, parseInt($("#breakLen").value,10)); isWork = true; left = work*60; renderClock(); });
+  renderClock();
+
+  function notify(msg){
+    try{
+      if(Notification && Notification.permission === "granted"){ new Notification(msg); }
+      else if(Notification && Notification.permission !== "denied"){ Notification.requestPermission(); }
+    }catch(e){}
+    if(navigator.vibrate) navigator.vibrate(50);
+  }
+
+  // Chart
+  function drawChart(){
+    const c = $("#chart");
+    const ctx = c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
+    const days = [...Array(7)].map((_,i)=>{ const d = new Date(); d.setDate(d.getDate()-6+i); return isoDay(d); });
+    const labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const values = days.map(d => S.week[d] ? 1 : 0);
+    const w = c.width, h = c.height, pad = 28;
+    const barW = (w - pad*2) / 7 * 0.6;
+    ctx.fillStyle = "#97a3b6";
+    ctx.font = "12px ui-monospace, monospace";
+    days.forEach((d, i)=>{
+      const x = pad + i * ((w - pad*2)/7) + ((w - pad*2)/7 - barW)/2;
+      const y = h - pad;
+      const bh = values[i] ? 90 : 10;
+      ctx.fillStyle = values[i] ? "#6ee7b7" : "rgba(255,255,255,.08)";
+      ctx.fillRect(x, y - bh, barW, bh);
+      ctx.fillStyle = "#97a3b6";
+      ctx.fillText(labels[i], x + barW/2 - 10, h - 8);
+    });
+  }
+  drawChart();
+
+  // Export
+  $("#export").addEventListener("click", ()=>{
+    const d = new Date().toISOString().slice(0,10);
+    const lines = [];
+    lines.push(`# Gym log — ${d}`);
+    lines.push("");
+    lines.push(`Streak: ${S.streak || 0} days`);
+    lines.push("");
+    if(S.sets.length){
+      lines.push("## Sets");
+      S.sets.forEach(s => lines.push(`- ${s.name}: ${s.reps} reps @ ${s.weight} kg`));
+      lines.push("");
+    }
+    lines.push("## Notes");
+    lines.push(S.notes || "-");
+    const blob = new Blob([lines.join("\n")], {type:"text/markdown"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `gym-${d}.md`; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Reset day
+  $("#resetDay").addEventListener("click", ()=>{
+    if(!confirm("Reset sets and notes for today")) return;
+    S.sets = [];
+    S.notes = "";
+    notesEl.value = "";
+    renderSets();
+    save();
+  });
+})();
 </script>
 </body>
 </html>
