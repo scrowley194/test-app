@@ -15,39 +15,170 @@
 
 <style>
   :root{
-    --bg:#0b0e14; --card:#121826; --text:#e6ebf5; --muted:#96a3b6; --border:rgba(255,255,255,.08);
-    --good:#6ee7b7; --warn:#fde68a; --bad:#fca5a5; --blue:#93c5fd; --r:14px;
+    /* Palette */
+    --bg:#070a12;
+    --bg2:#0c1220;
+    --card:#0f1628cc;
+    --text:#eef2f8;
+    --muted:#9aa7bd;
+    --border:rgba(255,255,255,.10);
+    --edge:rgba(255,255,255,.06);
+
+    /* Accents */
+    --acc:#6ee7b7;     /* mint */
+    --acc2:#93c5fd;    /* sky */
+    --warn:#fde68a;
+    --bad:#fca5a5;
+
+    --r:16px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
   }
+
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0; background:radial-gradient(1200px 800px at 100% -15%, #182235 0%, #0b0e14 55%), var(--bg); color:var(--text); font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
-  .wrap{max-width:900px; margin:0 auto; padding:22px 16px 40px}
-  header{display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:14px}
-  h1{margin:0; font-size:24px}
-  .muted{color:var(--muted)}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border:1px solid var(--border); border-radius:var(--r); padding:14px 14px 16px; box-shadow:0 10px 30px rgba(0,0,0,.25); backdrop-filter:blur(6px); margin-bottom:12px}
-  .grid{display:grid; gap:10px}
+  body{
+    margin:0;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 800px at 110% -10%, #1a2440 0%, var(--bg) 60%),
+      linear-gradient(180deg, var(--bg2), var(--bg));
+    font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    letter-spacing:.2px;
+  }
+
+  /* Container */
+  .wrap{max-width:980px; margin:0 auto; padding:28px 18px 44px}
+
+  /* Header */
+  header{display:flex; justify-content:space-between; align-items:flex-end; gap:14px; flex-wrap:wrap; margin-bottom:16px}
+  h1{
+    margin:0;
+    font-size:28px;
+    background:linear-gradient(90deg, #fff, #bfdcff 40%, #a2ffd8 80%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:.4px;
+  }
+  #today{color:var(--muted); margin-top:4px}
+
+  /* Cards with gradient border */
+  .card{
+    position:relative; border-radius:var(--r); padding:16px; background:var(--card);
+    box-shadow:var(--shadow);
+    backdrop-filter: blur(8px);
+    border:1px solid var(--edge);
+    overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+    background:linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,.04));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+  }
+
+  /* Layout helpers */
+  .grid{display:grid; gap:12px}
   @media(min-width:760px){.grid-2{grid-template-columns:1fr 1fr}}
   .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
   .col{display:flex; flex-direction:column; gap:10px}
-  button{background:#1b2333; border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; cursor:pointer; transition:.15s}
-  button:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.25)}
-  button.primary{background:linear-gradient(180deg, rgba(110,231,183,.18), rgba(110,231,183,.10)); border-color:rgba(110,231,183,.35)}
-  button.warn{background:linear-gradient(180deg, rgba(253,230,138,.20), rgba(253,230,138,.12)); border-color:rgba(253,230,138,.35)}
-  button.danger{background:linear-gradient(180deg, rgba(252,165,165,.18), rgba(252,165,165,.10)); border-color:rgba(252,165,165,.35)}
-  input[type="number"], input[type="text"], select{background:#0e1422; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px}
-  .exercise{border:1px solid var(--border); border-radius:12px; padding:10px}
-  .tag{font-size:12px; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:2px 8px}
-  .setrow{display:flex; gap:8px; align-items:center; margin-top:8px}
-  .setrow input{width:86px}
   .small{font-size:12px}
-  .pill{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border); border-radius:999px}
-  .timer{font-size:32px; font-weight:700; letter-spacing:1px}
-  .ok{color:var(--good)} .warn-txt{color:var(--warn)} .bad{color:var(--bad)}
-  canvas{width:100%; height:160px}
+  .muted{color:var(--muted)}
+
+  /* Buttons */
+  button{
+    appearance:none; border:0; cursor:pointer; border-radius:12px;
+    padding:10px 14px; color:var(--text);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    transition:transform .14s ease, box-shadow .14s ease;
+  }
+  button:hover{transform:translateY(-1px)}
+  button:active{transform:translateY(0)}
+  button.primary{
+    background:
+      radial-gradient(200% 100% at 0% 0%, rgba(255,255,255,.18), transparent 55%),
+      linear-gradient(180deg, rgba(110,231,183,.22), rgba(110,231,183,.08));
+    border-color:rgba(110,231,183,.45);
+  }
+  button.warn{
+    background:
+      radial-gradient(200% 100% at 0% 0%, rgba(255,255,255,.18), transparent 55%),
+      linear-gradient(180deg, rgba(253,230,138,.25), rgba(253,230,138,.10));
+    border-color:rgba(253,230,138,.45);
+  }
+  button.danger{
+    background:
+      radial-gradient(200% 100% at 0% 0%, rgba(255,255,255,.18), transparent 55%),
+      linear-gradient(180deg, rgba(252,165,165,.22), rgba(252,165,165,.08));
+    border-color:rgba(252,165,165,.45);
+  }
+
+  /* Pills and tags */
+  .pill,.tag{
+    display:inline-flex; align-items:center; gap:8px; padding:6px 10px;
+    border-radius:999px; border:1px solid var(--border); color:var(--muted);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .tag{font-size:12px}
+
+  /* Inputs */
+  input[type="number"], input[type="text"], select, textarea{
+    width:100%; background:#0c1426; color:var(--text);
+    border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:rgba(147,197,253,.8); box-shadow:0 0 0 3px rgba(147,197,253,.25)}
+
+  /* Exercise blocks */
+  .exercise{border:1px solid var(--edge); border-radius:14px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01))}
+  .setrow{display:flex; gap:8px; align-items:center; margin-top:8px}
+  .setrow input{width:84px}
+
+  /* Timer */
+  .timer{font-size:34px; font-weight:800; letter-spacing:.6px}
+  .ok{color:var(--acc)}
+  .warn-txt{color:var(--warn)}
+  .bad{color:var(--bad)}
+
+  /* Canvas sizing */
+  canvas{width:100%; height:180px}
+
+  /* Motion respect */
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important}
+  }
 </style>
 </head>
 <body>
+  <!-- Decor background -->
+<svg aria-hidden="true" width="0" height="0" style="position:absolute"><defs>
+  <filter id="glow"><feGaussianBlur stdDeviation="40" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs></svg>
+<div style="position:fixed; inset:0; pointer-events:none; z-index:-1;">
+  <canvas id="bgGrid" style="width:100%; height:100%; opacity:.35; filter:saturate(1.1)"></canvas>
+  <div style="position:absolute; inset:auto -20% -20% auto; width:60vmin; height:60vmin; background:radial-gradient(circle at 30% 30%, rgba(147,197,253,.35), transparent 60%), radial-gradient(circle at 70% 60%, rgba(110,231,183,.35), transparent 60%); filter:url(#glow);"></div>
+</div>
+<script>
+  // tiny animated grid
+  (function(){
+    const c = document.getElementById('bgGrid'); if(!c) return;
+    const ctx = c.getContext('2d');
+    const DPR = Math.max(1, window.devicePixelRatio || 1);
+    function size(){ c.width = c.clientWidth*DPR; c.height = c.clientHeight*DPR; }
+    size(); window.addEventListener('resize', size);
+    let t = 0;
+    function draw(){
+      const w=c.width, h=c.height; ctx.clearRect(0,0,w,h);
+      ctx.lineWidth = 1*DPR; ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      const gap = 36*DPR, off = (t%gap);
+      for(let x=-off; x<w; x+=gap){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+      for(let y=-off; y<h; y+=gap){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+      t += .35*DPR; requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+</script>
 <div class="wrap">
   <header>
     <div>
