@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Daily Ops</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
+
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0b0e14" />
+
+<style>
+  :root { --bg:#0b0e14; --card:#121826; --text:#e6ebf5; --border:rgba(255,255,255,0.1); }
+  html,body{height:100%}
+  body{margin:0; background:var(--bg); color:var(--text); font:16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;}
+  .wrap{max-width:720px; margin:0 auto; padding:28px 18px}
+  .card{background:#111826cc; border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.25); backdrop-filter:blur(6px)}
+  h1{margin:0 0 8px 0; font-size:24px}
+  .muted{opacity:.75}
+  button{background:#1b2333; color:#e6ebf5; border:1px solid var(--border); padding:10px 12px; border-radius:10px; cursor:pointer}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Daily Ops PWA</h1>
+    <p class="muted">This is a minimal shell so you can install and test the PWA experience. Replace this content with your own tools when ready.</p>
+    <div class="row">
+      <button id="installBtn" style="display:none">Install</button>
+      <button id="offlineTest">Make offline test note</button>
+    </div>
+    <p id="status" class="muted"></p>
+  </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+
+// basic install prompt for Android or desktop
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'inline-block';
+});
+installBtn?.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installBtn.style.display = 'none';
+});
+
+// tiny offline test
+const status = document.getElementById('status');
+document.getElementById('offlineTest').addEventListener('click', () => {
+  const key = 'offline-note';
+  const val = 'Saved at ' + new Date().toISOString();
+  localStorage.setItem(key, val);
+  status.textContent = 'Saved: ' + val + ' • Now try Airplane Mode and reload.';
+});
+</script>
+</body>
+</html>
